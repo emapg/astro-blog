@@ -1,0 +1,41 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostGrid from '../../components/blog/PostGrid.astro';
+import { getCollection } from 'astro:content';
+import { sortPostsByDate } from '../../utils/date';
+import { PAGINATION_POSTS_PER_PAGE } from '../../config';
+
+export async function getStaticPaths({ paginate }) {
+  const posts = await getCollection('blog', ({ data }) => {
+    return !data.draft && import.meta.env.PROD ? true : true;
+  });
+  const sortedPosts = sortPostsByDate(posts);
+  
+  return paginate(sortedPosts, { pageSize: PAGINATION_POSTS_PER_PAGE });
+}
+
+const { page } = Astro.props;
+---
+
+<BaseLayout 
+  title="Blog Posts"
+  description="Browse all blog posts"
+>
+  <section class="space-y-6">
+    <h1 class="text-4xl font-bold">Blog Posts</h1>
+    <PostGrid posts={page.data} />
+    
+    <nav class="flex justify-between mt-8">
+      {page.url.prev && (
+        <a href={page.url.prev} class="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-md">
+          Previous
+        </a>
+      )}
+      {page.url.next && (
+        <a href={page.url.next} class="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-md">
+          Next
+        </a>
+      )}
+    </nav>
+  </section>
+</BaseLayout>

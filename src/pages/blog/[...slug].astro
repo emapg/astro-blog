@@ -1,0 +1,66 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TableOfContents from '../../components/blog/TableOfContents.astro';
+import ShareButtons from '../../components/common/ShareButtons.astro';
+import Comments from '../../components/common/Comments';
+import { formatDate } from '../../utils/date';
+import { getReadingTime } from '../../utils/readingTime';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
+  }));
+}
+
+const { post } = Astro.props;
+const { Content, headings } = await post.render();
+const readingTime = getReadingTime(post.body);
+---
+
+<BaseLayout 
+  title={post.data.title}
+  description={post.data.description}
+  image={post.data.heroImage}
+>
+  <article class="max-w-3xl mx-auto">
+    <header class="mb-8">
+      <h1 class="text-4xl font-bold mb-4">{post.data.title}</h1>
+      <div class="flex items-center space-x-2 text-gray-600 dark:text-gray-400">
+        <time datetime={post.data.pubDate.toISOString()}>
+          {formatDate(post.data.pubDate)}
+        </time>
+        <span>•</span>
+        <span>{readingTime}</span>
+      </div>
+    </header>
+
+    {post.data.heroImage && (
+      <img
+        src={post.data.heroImage}
+        alt={post.data.title}
+        class="rounded-lg mb-8"
+      />
+    )}
+
+    <div class="grid grid-cols-1 lg:grid-cols-[1fr_250px] gap-8">
+      <div class="prose dark:prose-invert max-w-none">
+        <Content />
+      </div>
+      
+      <aside class="space-y-8 lg:sticky lg:top-20">
+        <TableOfContents headings={headings} />
+        <ShareButtons 
+          url={Astro.url.href} 
+          title={post.data.title} 
+        />
+      </aside>
+    </div>
+
+    <div class="mt-12">
+      <Comments client:load />
+    </div>
+  </article>
+</BaseLayout>

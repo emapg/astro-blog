@@ -1,0 +1,27 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PostGrid from '../components/blog/PostGrid.astro';
+import Newsletter from '../components/common/Newsletter.astro';
+import { getCollection } from 'astro:content';
+import { sortPostsByDate } from '../utils/date';
+
+const posts = await getCollection('blog', ({ data }) => {
+  return !data.draft && import.meta.env.PROD ? true : true;
+});
+
+const sortedPosts = sortPostsByDate(posts).slice(0, 6);
+---
+
+<BaseLayout 
+  title="Welcome to Modern Blog"
+  description="A modern blog built with Astro.js featuring the latest articles and insights."
+>
+  <section class="space-y-6">
+    <h1 class="text-4xl font-bold">Latest Posts</h1>
+    <PostGrid posts={sortedPosts} />
+  </section>
+  
+  <div class="mt-16">
+    <Newsletter />
+  </div>
+</BaseLayout>
